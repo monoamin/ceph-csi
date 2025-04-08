@@ -4,6 +4,7 @@ import (
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"github.com/ceph/ceph-csi/internal/util/k8s"
 )
 
 // ValidateNodeStageVolumeRequest validates the node stage request.
@@ -24,13 +25,20 @@ func ValidateNodeStageVolumeRequest(req *csi.NodeStageVolumeRequest) error {
 		return status.Error(codes.InvalidArgument, "stage secrets cannot be nil or empty")
 	}
 
-	// validate stagingpath exists
-	ok := checkDirExists(req.GetStagingTargetPath())
-	if !ok {
-		return status.Errorf(
-			codes.InvalidArgument,
-			"staging path %s does not exist on node",
-			req.GetStagingTargetPath())
+	// Allow auto-creation of staging path when not running on Kubernetes
+	if !k8s.RunsOnKubernetes() {
+		if err := os.MkdirAll(req.StagingTargetPath, 0755); err != nil {
+			return status.Error(codes.Internal, fmt.Sprintf("failed to create staging target path: %v", err))
+		}
+	} else {
+		// validate staging path exists
+		ok := checkDirExists(req.GetStagingTargetPath())
+		if !ok {
+			return status.Errorf(
+				codes.InvalidArgument,
+				"staging path %s does not exist on node",
+				req.GetStagingTargetPath())
+		}
 	}
 
 	return nil
