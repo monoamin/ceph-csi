@@ -686,7 +686,7 @@ func (ns *NodeServer) createStageMountPoint(ctx context.Context, mountPath strin
 		return nil
 	}
 
-	err := os.Mkdir(mountPath, 0o750)
+	err := os.MkdirAll(mountPath, 0o750)
 	if err != nil {
 		if !os.IsExist(err) {
 			log.ErrorLog(ctx, "failed to create mountPath:%s with error: %v", mountPath, err)
