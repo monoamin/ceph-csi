@@ -5,6 +5,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"github.com/ceph/ceph-csi/internal/util/k8s"
+	"fmt"
+	"os"
 )
 
 // ValidateNodeStageVolumeRequest validates the node stage request.
